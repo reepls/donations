@@ -15,7 +15,6 @@ export default function Monthly() {
   const convertAmount = (amount: string, currency: 'XAF' | 'USD') => {
     const numAmount = parseFloat(amount)
     if (currency === 'USD') {
-      // Approximate conversion rate: 1 USD = 620 XAF (as of recent rates)
       return Math.round(numAmount / 620)
     }
     return numAmount
@@ -27,7 +26,6 @@ export default function Monthly() {
 
   const predefinedAmounts = ['2000', '5000', '10000', '20000', '50000']
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       if (isDropdownOpen) {

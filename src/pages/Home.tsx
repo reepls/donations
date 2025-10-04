@@ -15,7 +15,6 @@ export default function Home() {
   const convertAmount = (amount: string, currency: 'XAF' | 'USD') => {
     const numAmount = parseFloat(amount)
     if (currency === 'USD') {
-      // Approximate conversion rate: 1 USD = 620 XAF (as of recent rates)
       return Math.round(numAmount / 620)
     }
     return numAmount
@@ -27,7 +26,6 @@ export default function Home() {
 
   const predefinedAmounts = ['2000', '5000', '10000', '20000', '50000']
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       if (isDropdownOpen) {
@@ -96,10 +94,10 @@ export default function Home() {
               >
                 <span>{selectedCurrency}</span>
                 <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0001.414 0L10 10.586l3.293-3.293a1 1 0001.414 1.414l-4 4a1 1 000-1.414 0l-4-4a1 1 00001.414z" clipRule="evenodd" />
                 </svg>
               </button>
-              
+
               {/* Dropdown Menu */}
               {isDropdownOpen && (
                 <div className="absolute right-0 top-full mt-2 bg-neutral-700 border border-neutral-500 rounded-lg shadow-lg z-10 py-1 min-w-[80px]">
@@ -137,7 +135,7 @@ export default function Home() {
           {/* Predefined Amounts */}
           <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 md:gap-3 mb-3">
             {predefinedAmounts.map((amount) => (
-                <button
+              <button
                 key={amount}
                 onClick={() => {
                   setSelectedAmount(amount)
