@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import momo from '../assets/mtn_momo.png'
 import orange from '../assets/mtn_momo.png'
+import { useCreateDonation } from '../hooks/useDonations'
+import type { DonationRequest, ApiError } from '../types/donation'
+import ErrorPopup from '../components/ErrorPopup'
 
 export default function Monthly() {
   const navigate = useNavigate()
@@ -9,7 +12,14 @@ export default function Monthly() {
   const [customAmount, setCustomAmount] = useState<string>('')
   const [selectedCurrency, setSelectedCurrency] = useState<'XAF' | 'USD'>('XAF')
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false)
+  const [phone, setPhone] = useState<string>('')
   const [email, setEmail] = useState<string>('')
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'mobile_money'>('mobile_money')
+  const [errorMessage, setErrorMessage] = useState<string>('')
+  const [showError, setShowError] = useState<boolean>(false)
+  const [showSuccess, setShowSuccess] = useState<boolean>(false)
+  
+  const createDonationMutation = useCreateDonation()
   
   // Convert amounts based on currency selection
   const convertAmount = (amount: string, currency: 'XAF' | 'USD') => {
@@ -25,6 +35,34 @@ export default function Monthly() {
   }
 
   const predefinedAmounts = ['2000', '5000', '10000', '20000', '50000']
+
+  const handleDonation = async () => {
+    const amount = customAmount || selectedAmount
+    if (!amount || !phone || !email) {
+      setErrorMessage('Please fill in all required fields')
+      setShowError(true)
+      return
+    }
+
+    const donationData: DonationRequest = {
+      amount: convertAmount(amount, selectedCurrency),
+      type: 'monthly',
+      phone: phone,
+      email: email,
+      anonymous: false,
+      payment_method: selectedPaymentMethod
+    }
+
+    try {
+      await createDonationMutation.mutateAsync(donationData)
+      setShowSuccess(true)
+    } catch (error: unknown) {
+      const apiError = error as ApiError;
+      const errorMsg = apiError?.message || 'An unexpected error occurred'
+      setErrorMessage(errorMsg)
+      setShowError(true)
+    }
+  }
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -65,17 +103,37 @@ export default function Monthly() {
           </p>
         </div>
 
-        {/* Email Input Section */}
+        {/* Contact Information Section */}
         <div className="mb-6">
           <h2 className="text-base md:text-lg font-medium text-neutral-100 mb-3">
-            Enter your email for receipt and updates
+            Contact Information
           </h2>
-          <div className="relative">
+          
+          {/* Email Input */}
+          <div className="mb-3">
+            <label className="block text-sm md:text-base text-neutral-200 mb-2">
+              Email Address
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
+              placeholder="user@example.com"
+              className="w-full px-3 py-2 md:px-4 md:py-3 border border-neutral-400 rounded-lg text-sm md:text-base focus:outline-none focus:border-primary-500 bg-neutral-700 text-neutral-100 placeholder-neutral-400"
+              required
+            />
+          </div>
+
+          {/* Phone Input */}
+          <div className="mb-3">
+            <label className="block text-sm md:text-base text-neutral-200 mb-2">
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="677123456"
               className="w-full px-3 py-2 md:px-4 md:py-3 border border-neutral-400 rounded-lg text-sm md:text-base focus:outline-none focus:border-primary-500 bg-neutral-700 text-neutral-100 placeholder-neutral-400"
               required
             />
@@ -100,7 +158,7 @@ export default function Monthly() {
               >
                 <span>{selectedCurrency}</span>
                 <svg className="w-3 h-3 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 0 1.414 0L10 10.586l3.293-3.293a1 1 0 0 1.414 1.414l-4 4a1 1 0 0-1.414 0l-4-4a1 1 0 0 0 1.414z" clipRule="evenodd" />
                 </svg>
               </button>
               
@@ -181,28 +239,68 @@ export default function Monthly() {
 
         {/* Payment Method Section */}
         <div className="mb-6">
-          <h2 className="text-base md:text-lg font-medium text-primary-800 mb-3">
+          <h2 className="text-base md:text-lg font-medium text-neutral-100 mb-3">
             Choose your payment method
           </h2>
           <div className="flex gap-3 md:gap-4 justify-center md:justify-start">
-            <img 
-              src={momo} 
-              alt="MTN MoMo" 
-              className="h-16 md:h-20 w-auto rounded-lg border-2 border-neutral-400 hover:border-primary-400 transition-colors cursor-pointer" 
-            />
-            <img 
-              src={orange} 
-              alt="Orange Money" 
-              className="h-16 md:h-20 w-auto rounded-lg border-2 border-neutral-400 hover:border-primary-400 transition-colors cursor-pointer" 
-            />
+            <button
+              onClick={() => setSelectedPaymentMethod('mobile_money')}
+              className={`rounded-lg border-2 transition-colors ${
+                selectedPaymentMethod === 'mobile_money'
+                  ? 'border-primary-400 bg-primary-50'
+                  : 'border-neutral-400 hover:border-primary-400'
+              }`}
+            >
+              <img 
+                src={momo} 
+                alt="MTN MoMo" 
+                className="h-16 md:h-20 w-auto rounded-lg" 
+              />
+            </button>
+            <button
+              onClick={() => setSelectedPaymentMethod('mobile_money')}
+              className={`rounded-lg border-2 transition-colors ${
+                selectedPaymentMethod === 'mobile_money'
+                  ? 'border-primary-400 bg-primary-50'
+                  : 'border-neutral-400 hover:border-primary-400'
+              }`}
+            >
+              <img 
+                src={orange} 
+                alt="Orange Money" 
+                className="h-16 md:h-20 w-auto rounded-lg" 
+              />
+            </button>
           </div>
         </div>
 
         {/* Donate Button */}
-        <button className="w-full bg-primary-400 text-white py-3 md:py-4 rounded-lg text-sm md:text-base font-semibold hover:bg-primary-400/80 transition-colors">
-          Set Up Monthly Donation
+        <button 
+          onClick={handleDonation}
+          disabled={createDonationMutation.isPending}
+          className="w-full bg-primary-400 text-white py-3 md:py-4 rounded-lg text-sm md:text-base font-semibold hover:bg-primary-400/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {createDonationMutation.isPending ? 'Processing...' : 'Set Up Monthly Donation'}
         </button>
       </div>
+
+      {/* Error Popup */}
+      <ErrorPopup
+        isOpen={showError}
+        onClose={() => setShowError(false)}
+        title="Donation Error"
+        message={errorMessage}
+        type="error"
+      />
+
+      {/* Success Popup */}
+      <ErrorPopup
+        isOpen={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        title="Monthly Donation Set Up"
+        message="Thank you for setting up your monthly donation! Your recurring contribution helps us maintain the platform."
+        type="success"
+      />
     </div>
   )
 }
